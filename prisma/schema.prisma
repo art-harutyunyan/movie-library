@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Workspace {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  movies    Movie[]
+
+  @@map("workspaces")
+}
+
+model Movie {
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String    @db.VarChar(100)
+  director    String    @db.VarChar(100)
+  year        Int
+  genre       String    @db.VarChar(40)
+  rating      Decimal   @db.Decimal(4, 2)
+  watched     Boolean   @default(false)
+  description String?   @db.VarChar(1000)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspaceId String    @map("workspace_id") @db.Uuid
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, genre])
+  @@index([workspaceId, watched])
+  @@index([workspaceId, createdAt])
+  @@map("movies")
+}
+
+model RateLimitBucket {
+  key         String   @id @db.VarChar(160)
+  count       Int
+  resetAt     DateTime @map("reset_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("rate_limit_buckets")
+}
